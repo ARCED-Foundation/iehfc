@@ -1,34 +1,49 @@
-# Administrative Unit-Level Data Quality Checks -- Construction ----
-  
-  admin_var <- reactive({
+#' Administrative Unit-Level Data Quality Checks
+#'
+#' This set of reactive expressions computes various summaries of data quality checks
+#' at the administrative unit level. It includes total submissions, complete submissions,
+#' and daily submissions, with visualizations if date information is available.
+#'
+#' @param input The Shiny server input object containing the selections from UI.
+#' @param hfc_dataset A reactive expression providing the dataset for analysis.
+#' @importFrom shiny reactive bindEvent req renderDT renderPlotly
+#' @import magrittr
+#' @importFrom dplyr left_join group_by summarize ungroup across any_of mutate case_when
+#' @import dplyr
+#' @importFrom tidyr pivot_wider
+#' @importFrom lubridate parse_date_time as.Date
+#' @importFrom rlang sym
+#' @importFrom ggplot2 ggplot geom_line labs theme_minimal theme
+#' @importFrom plotly ggplotly highlight_key highlight
+#' @importFrom tibble tibble
+#' @export
+  admin_var <- shiny::reactive({
       input$admin_var_select_var
   })
-  
-  admin_super_vars <- reactive({
+
+  admin_super_vars <- shiny::reactive({
       input$admin_super_vars_select_var
   })
-  
-  admin_date_var <- reactive({
+
+  admin_date_var <- shiny::reactive({
       input$admin_date_var_select_var
   })
-  
-  admin_complete_var <- reactive({
+
+  admin_complete_var <- shiny::reactive({
       input$admin_complete_var_select_var
   })
-  
-  admin_total_subs_dataset <- reactive({
+
+  admin_total_subs_dataset <- shiny::reactive({
       hfc_dataset() %>%
           group_by(
-              across(any_of(admin_super_vars())), !!sym(admin_var())
-          ) %>%
+              across(any_of(admin_super_vars())), !!sym(admin_var())) %>%
           summarize(
-              num_submissions = n()
-          ) %>%
+              num_submissions = n()) %>%
           ungroup()
   }) %>%
   bindEvent(input$run_hfcs)
-  
-  admin_complete_subs_dataset <- reactive({
+
+  admin_complete_subs_dataset <- shiny::reactive({
       if(admin_complete_var() != "") {
           hfc_dataset() %>%
               group_by(
@@ -54,8 +69,8 @@
       }
   }) %>%
   bindEvent(input$run_hfcs)
-  
-  admin_daily_subs_dataset <- reactive({
+
+  admin_daily_subs_dataset <- shiny::reactive({
       if(admin_date_var() != "") {
           hfc_dataset() %>%
               # Attempt to format date. This may need to be added to depending on reasonable formats to expect
@@ -90,8 +105,8 @@
       }
   }) %>%
   bindEvent(input$run_hfcs)
-  
-  admin_daily_subs_plot <- reactive({
+
+  admin_daily_subs_plot <- shiny::reactive({
       plot_data <- hfc_dataset() %>%
           # Attempt to format date. This may need to be added to depending on reasonable formats to expect
           mutate(
@@ -116,9 +131,9 @@
               )
           ) %>%
           ungroup()
-      
+
       # Set up highlighting individual admins
-      
+
       admin_daily_subs_ggplot <- plot_data %>%
           mutate(
               !!admin_var() := factor(!!sym(admin_var()))
@@ -143,25 +158,24 @@
           theme(
               legend.position = "none"
           )
-      
+
       admin_daily_subs_ggplotly <- ggplotly(admin_daily_subs_ggplot, tooltip = c("color", "y"))
-      
+
       highlight(admin_daily_subs_ggplotly, on = "plotly_hover", off = "plotly_doubleclick")
-      
+
   })
-  
-  admin_subs_dataset <- reactive({
+
+  admin_subs_dataset <- shiny::reactive({
       admin_total_subs_dataset() %>%
           left_join(admin_complete_subs_dataset()) %>%  # Works because is empty tibble if not "complete" variable is selected
           left_join(admin_daily_subs_dataset())
   }) %>%
   bindEvent(input$run_hfcs)
-  
+
   output$admin_subs_table <- renderDT(
       admin_subs_dataset(), fillContainer = TRUE
   )
-  
+
   output$admin_daily_subs_plot_rendered <- renderPlotly(
       admin_daily_subs_plot()
   )
-  

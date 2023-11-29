@@ -1,22 +1,36 @@
-# Outlier Data Quality Checks -- Construction ----
-
-  indiv_outlier_vars <- reactive({
+#' Outlier Data Quality Checks
+#'
+#' These reactive expressions and render functions are used to perform
+#' outlier detection in the dataset. They handle individual and group variables
+#' and provide a summary of outliers.
+#'
+#' @param input Shiny server input object containing the variable selections.
+#' @param hfc_dataset Reactive expression providing the dataset for analysis.
+#' @importFrom shiny reactive renderDT bindEvent
+#' @importFrom magrittr %>%
+#' @importFrom dplyr group_by mutate ungroup summarize filter select arrange bind_rows
+#' @importFrom purrr map
+#' @importFrom tibble list_rbind
+#' @importFrom rlang sym
+#' @importFrom stats sd
+#' @export
+  indiv_outlier_vars <- shiny::reactive({
       input$indiv_outlier_vars_select_var
   })
-  
-  group_outlier_vars <- reactive({
+
+  group_outlier_vars <- shiny::reactive({
       input$group_outlier_vars_select_var
   })
-  
-  outlier_id_var <- reactive({
+
+  outlier_id_var <- shiny::reactive({
       input$outlier_id_select_var
   })
-  
-  outlier_extra_vars <- reactive({
+
+  outlier_extra_vars <- shiny::reactive({
       input$outlier_extra_vars_select_var
   })
-  
-  indiv_outlier_dataset <- reactive({
+
+  indiv_outlier_dataset <- shiny::reactive({
       indiv_outlier_vars() %>%
           map(
               ~ hfc_dataset() %>%
@@ -56,8 +70,8 @@
           list_rbind()
   }) %>%
   bindEvent(input$run_hfcs)
-  
-  group_outlier_dataset <- reactive({
+
+  group_outlier_dataset <- shiny::reactive({
       group_outlier_vars() %>%
           map(
               ~ hfc_dataset() %>%
@@ -99,14 +113,13 @@
           list_rbind()
   }) %>%
   bindEvent(input$run_hfcs)
-  
-  outlier_dataset <- reactive({
+
+  outlier_dataset <- shiny::reactive({
       bind_rows(indiv_outlier_dataset(), group_outlier_dataset()) %>%
           arrange(!!sym(outlier_id_var()), issue_var)
   }) %>%
   bindEvent(input$run_hfcs)
-  
+
   output$outlier_table <- renderDT(
       outlier_dataset(), fillContainer = TRUE
   )
-  

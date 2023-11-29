@@ -1,22 +1,39 @@
-# Enumerator Data Quality Checks -- Construction ----
-
-  enumerator_var <- reactive({
+#' Enumerator Data Quality Checks
+#'
+#' This series of reactive expressions and outputs creates a comprehensive
+#' analysis of enumerator data quality, including total submissions,
+#' complete submissions, daily submissions, and average values for selected variables.
+#'
+#' @param input Shiny server input object containing the variable selections.
+#' @param hfc_dataset Reactive expression providing the dataset for analysis.
+#' @importFrom shiny reactive renderDT bindEvent
+#' @importFrom magrittr %>%
+#' @importFrom dplyr group_by summarize ungroup mutate left_join filter arrange case_when across
+#' @importFrom tidyr pivot_wider pivot_longer
+#' @importFrom rlang sym
+#' @importFrom tibble tibble
+#' @importFrom ggplot2 ggplot geom_line aes labs theme_minimal theme
+#' @importFrom plotly ggplotly highlight
+#' @importFrom stats mean sd cumsum
+#' @importFrom lubridate parse_date_time as.Date
+#' @export
+  enumerator_var <- shiny::reactive({
       input$enumerator_var_select_var
   })
-  
-  enumerator_ave_vars <- reactive({
+
+  enumerator_ave_vars <- shiny::reactive({
       input$enumerator_ave_vars_select_var
   })
-  
-  enumerator_date_var <- reactive({
+
+  enumerator_date_var <- shiny::reactive({
       input$enumerator_date_var_select_var
   })
-  
-  enumerator_complete_var <- reactive({
+
+  enumerator_complete_var <- shiny::reactive({
       input$enumerator_complete_var_select_var
   })
-  
-  enumerator_total_subs_dataset <- reactive({
+
+  enumerator_total_subs_dataset <- shiny::reactive({
       hfc_dataset() %>%
           group_by(!!sym(enumerator_var())) %>%
           summarize(
@@ -25,8 +42,8 @@
           ungroup()
   }) %>%
   bindEvent(input$run_hfcs)
-  
-  enumerator_complete_subs_dataset <- reactive({
+
+  enumerator_complete_subs_dataset <- shiny::reactive({
       if(enumerator_complete_var() != "") {
           hfc_dataset() %>%
               group_by(!!sym(enumerator_var())) %>%
@@ -50,8 +67,8 @@
       }
   }) %>%
   bindEvent(input$run_hfcs)
-  
-  enumerator_daily_subs_dataset <- reactive({
+
+  enumerator_daily_subs_dataset <- shiny::reactive({
       if(enumerator_date_var() != "") {
           hfc_dataset() %>%
               # Attempt to format date. This may need to be added to depending on reasonable formats to expect
@@ -86,8 +103,8 @@
       }
   }) %>%
   bindEvent(input$run_hfcs)
-  
-  enumerator_daily_subs_plot <- reactive({
+
+  enumerator_daily_subs_plot <- shiny::reactive({
       plot_data <- hfc_dataset() %>%
           # Attempt to format date. This may need to be added to depending on reasonable formats to expect
           mutate(
@@ -112,9 +129,9 @@
               )
           ) %>%
           ungroup()
-      
+
       # Set up highlighting individual enumerators
-      
+
       enumerator_daily_subs_ggplot <- plot_data %>%
           mutate(
               !!enumerator_var() := factor(!!sym(enumerator_var()))
@@ -137,21 +154,21 @@
           theme(
               legend.position = "none"
           )
-      
+
       enumerator_daily_subs_ggplotly <- ggplotly(enumerator_daily_subs_ggplot, tooltip = c("color", "y"))
-      
+
       highlight(enumerator_daily_subs_ggplotly, on = "plotly_hover", off = "plotly_doubleclick")
-        
+
   })
-  
-  enumerator_subs_dataset <- reactive({
+
+  enumerator_subs_dataset <- shiny::reactive({
       enumerator_total_subs_dataset() %>%
           left_join(enumerator_complete_subs_dataset()) %>%  # Works because is empty tibble if not "complete" variable is selected
           left_join(enumerator_daily_subs_dataset())
   }) %>%
   bindEvent(input$run_hfcs)
-  
-  enumerator_ave_vars_dataset <- reactive({
+
+  enumerator_ave_vars_dataset <- shiny::reactive({
       hfc_dataset() %>%
           group_by(!!sym(enumerator_var())) %>%
           summarize(
@@ -163,16 +180,15 @@
           ungroup()
   }) %>%
   bindEvent(input$run_hfcs)
-  
+
   output$enumerator_subs_table <- renderDT(
       enumerator_subs_dataset(), fillContainer = TRUE
   )
-  
+
   output$enumerator_daily_subs_plot_rendered <- renderPlotly(
       enumerator_daily_subs_plot()
   )
-  
+
   output$enumerator_ave_vars_table <- renderDT(
       enumerator_ave_vars_dataset(), fillContainer = TRUE
   )
-  

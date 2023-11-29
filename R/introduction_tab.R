@@ -1,7 +1,10 @@
-###############################################
-############### INTRODUCTION TAB ###############
-###############################################
-
+#' Introduction Tab Content
+#'
+#' This creates the UI for the introduction tab of the application.
+#' It provides users with an overview and instructions on how to use the application.
+#'
+#' @return A Shiny UI element for the introduction tab.
+#' @export
 introduction_tab <- tabItem(tabName = "introduction",
                             div(style = "text-align:left", tags$h2("Welcome to iehfc!"),
                                 shiny::img(src = "res/BULBS_purple.png", style = "width:220px;"),
@@ -11,11 +14,11 @@ introduction_tab <- tabItem(tabName = "introduction",
                                        div(style = "text-align:left", tags$h3("The Need for iehfc")),
                                        box(width = "100%", status = "success",
                                            p("Iehfc arose from the pressing need to standardize and simplify high-frequency data checks in international development research. It aims to bridge the gap between the established necessity of these checks and the complexity involved in implementing them."),
-                                           p("Developed by the team of", 
+                                           p("Developed by the team of",
                                              tags$a("DIME Analytics", href = "https://www.worldbank.org/en/research/dime/data-and-analytics"),
-                                             " iehfc aims to be a one-stop solution for researchers, providing easy-to-create, customizable, and shareable high-frequency check outputs.", 
+                                             " iehfc aims to be a one-stop solution for researchers, providing easy-to-create, customizable, and shareable high-frequency check outputs.",
                                              "For more information about high-frequency checks you can consult", tags$a("our wiki resource", href = "https://dimewiki.worldbank.org/High_Frequency_Checks")),
-                                           p("If you encounter any issues or have suggestions, please report them ", 
+                                           p("If you encounter any issues or have suggestions, please report them ",
                                              tags$a("on our GitHub issues section.", href = "https://github.com/dime-worldbank/iehfc/issues"))
                                        )
                                 ),
@@ -45,5 +48,5 @@ introduction_tab <- tabItem(tabName = "introduction",
                                        )
                                 )
                             )
-                            
+
 )

@@ -1,26 +1,23 @@
+#' Launch the IEHFC Shiny Application
+#'
+#' @details This function starts the shiny application contained in the package.
+#' @export
+iehfc_app <- function() {
+  # Assuming you moved the www directory to inst/app/www
+  shiny::addResourcePath(prefix = "res", directoryPath = system.file("app/www", package = "iehfc"))
 
+  global_path <- system.file("R", "global.R", package = "iehfc")
+  ui_path <- system.file("R", "iehfc_ui.R", package = "iehfc")
+  server_path <- system.file("R", "iehfc_server.R", package = "iehfc")
 
-  iehfc_app <- function() {
-      
-      shiny::addResourcePath(prefix = "res", directoryPath = "iehfc_app/www")
-      
-      extract_source <- function(filename) {
-          source(filename, local = parent.frame(), chdir = TRUE)$value
-      }
-      
-      req_packages <- c(
-          "pacman", "shiny", "dplyr", "tidyr", "purrr", "ggplot2", "janitor", "data.table", "DT",
-          "remotes", "bsicons", "shinydashboard", "shinyjs", "markdown"
-      )
-      
-      if(sum(req_packages %in% (.packages())) != length(req_packages)) { # Means we need to run global.R to get packages, otherwise we're fine
-          extract_source("iehfc_app/global.R")
-      }
-      
-      shinyApp(
-          ui = extract_source("iehfc_app/iehfc_ui.R"),
-          server = extract_source("iehfc_app/iehfc_server.R")
-      )
-      
+  # Source the files
+  if (file.exists(global_path)) source(global_path)
+  ui <- if (file.exists(ui_path)) source(ui_path, local = TRUE)$value
+  server <- if (file.exists(server_path)) source(server_path, local = TRUE)$value
+
+  # Start the app
+  shinyApp(ui = ui, server = server)
+
   }
-  
+
+
